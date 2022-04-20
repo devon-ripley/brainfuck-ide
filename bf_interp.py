@@ -1,7 +1,8 @@
 import sys
 import json
 
-def main():
+
+def run():
     f = open('config.json', 'r')
     settings = json.load(f)
     f.close()
@@ -86,4 +87,4 @@ def main():
 
 if __name__ == '__main__':
     print('Brainfuck Interpreter by Devon Ripley')
-    main()
+    run()
