@@ -1,13 +1,24 @@
 import sys
-
+import json
 
 def main():
-    data_array = [0 for x in range(30000)]
+    f = open('config.json', 'r')
+    settings = json.load(f)
+    f.close()
+    array_size = settings['memory_array']
+    byte_size = settings['memory_block']
+
+    data_array = [0 for x in range(array_size)]
     debug = False
+    file_name = None
+    if len(sys.argv) == 1:
+        print('No file name argument')
+        exit()
+    if len(sys.argv) >= 2:
+        file_name = sys.argv[1]
     if len(sys.argv) == 3:
         if sys.argv[2].lower() == 'debug':
             debug = True
-    file_name = 'test.bf'
     with open(file_name, 'r') as f:
         bf_script_pre = f.readlines()
     memory_index = 0
@@ -19,24 +30,28 @@ def main():
             bf_script.append(com)
     total_length = len(bf_script)
     in_loop = False
-
+# interpreting loop
+    bounce_back = False
     while script_index < total_length:
         command = bf_script[script_index]
         if command == ']':
             if in_loop:
-                if data_array[loop_control[0][0]] <= 0:
-                    loop_control[0][1] = False
+                if data_array[loop_control[-1][0]] <= 0:
+                    loop_control[-1][1] = False
                     in_loop = False
-                    del loop_control[0]
-                elif data_array[loop_control[0][0]] > 0:
-                    script_index = loop_control[0][2]
+                    bounce_back = False
+                    del loop_control[-1]
+                elif data_array[loop_control[-1][0]] > 0:
+                    script_index = loop_control[-1][2]
+                    bounce_back = True
             else:
                 print('ERROR "]" before "["')
                 exit()
 
         elif command == '[':
-            if loop_control:
-                pass
+            if bounce_back:
+                bounce_back = False
+
             else:
                 loop_control.append([memory_index, True, script_index])
                 in_loop = True
